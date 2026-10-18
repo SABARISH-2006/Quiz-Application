@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Teacher Dashboard — QuizSphere quiz management and analytics.">
+    <title>Teacher Dashboard — QuizSphere</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<header class="navbar">
+    <div class="container nav-container">
+        <div style="display:flex;align-items:center;gap:16px;">
+            <button class="mobile-menu-btn" id="sidebar-toggle" onclick="toggleMobileSidebar()" aria-label="Menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="logo">
+                <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <span>QuizSphere</span>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <div class="nav-user-info">
+                <div class="nav-avatar" id="nav-avatar">T</div>
+                <span class="nav-user-name" id="nav-user-name">Teacher</span>
+                <span class="nav-role-badge badge-teacher">Teacher</span>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="handleLogout()">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ===== LAYOUT ===== -->
+<div class="dashboard-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="main-sidebar">
+        <span class="sidebar-section-label">Overview</span>
+        <button class="sidebar-btn active" id="menu-dash" onclick="switchSection('dash')">
+            <i class="fa-solid fa-house"></i> Dashboard
+        </button>
+
+        <span class="sidebar-section-label">Quizzes</span>
+        <button class="sidebar-btn" id="menu-create" onclick="switchSection('create')">
+            <i class="fa-solid fa-circle-plus"></i> Create Quiz
+        </button>
+        <button class="sidebar-btn" id="menu-quizzes" onclick="switchSection('quizzes')">
+            <i class="fa-solid fa-list-check"></i> My Quizzes
+        </button>
+        <button class="sidebar-btn" id="menu-reports" onclick="switchSection('reports')">
+            <i class="fa-solid fa-chart-line"></i> Score Reports
+        </button>
+
+        <span class="sidebar-section-label">Account</span>
+        <button class="sidebar-btn" id="menu-profile" onclick="switchSection('profile')">
+            <i class="fa-solid fa-user-gear"></i> Edit Profile
+        </button>
+
+        <div class="sidebar-spacer"></div>
+
+        <div style="padding:12px;background:var(--bg-elevated);border-radius:var(--radius-sm);border:1px solid var(--border);margin-top:8px;">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Logged in as</div>
+            <div id="sidebar-name" style="font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Teacher</div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- === SECTION: OVERVIEW === -->
+        <section id="section-dash" class="section-panel active">
+            <div class="page-header">
+                <h1 class="page-title">Teacher Dashboard</h1>
+                <p class="page-subtitle">Manage quizzes, track student performance, and view analytics.</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card violet">
+                    <div class="stat-icon violet"><i class="fa-solid fa-book-open"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="widget-created">0</div>
+                        <div class="stat-label">Quizzes Created</div>
+                    </div>
+                </div>
+                <div class="stat-card indigo">
+                    <div class="stat-icon indigo"><i class="fa-solid fa-users"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="widget-submissions">0</div>
+                        <div class="stat-label">Total Submissions</div>
+                    </div>
+                </div>
+                <div class="stat-card emerald">
+                    <div class="stat-icon emerald"><i class="fa-solid fa-gauge-high"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="widget-class-avg">0%</div>
+                        <div class="stat-label">Class Average</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fa-solid fa-bolt" style="color:var(--amber);margin-right:8px;"></i>Quick Actions</div>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-secondary" style="font-size:13px;margin-bottom:16px;">Deploy new knowledge tests or monitor student scores instantly.</p>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <button class="btn btn-primary btn-sm" onclick="switchSection('create')">
+                                <i class="fa-solid fa-plus"></i> Create Quiz
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="switchSection('reports')">
+                                <i class="fa-solid fa-table-list"></i> View Reports
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fa-solid fa-circle-info" style="color:var(--cyan);margin-right:8px;"></i>How It Works</div>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-secondary" style="font-size:13px;margin-bottom:8px;">Create quizzes with unique codes like <code style="background:var(--bg-elevated);padding:1px 6px;border-radius:4px;font-size:12px;">MATH-101</code>. Share the code with students so they can find and attempt the test.</p>
+                        <p class="text-secondary" style="font-size:13px;">Scores are processed instantly and visible in the reports tab.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- === SECTION: CREATE QUIZ === -->
+        <section id="section-create" class="section-panel">
+            <div class="page-header">
+                <h1 class="page-title">Create New Quiz</h1>
+                <p class="page-subtitle">Fill in quiz details and add your questions below</p>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form id="quiz-create-form" onsubmit="handleQuizSubmit(event)" novalidate>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="quiz-title">Quiz Title</label>
+                                <input type="text" id="quiz-title" class="form-control" placeholder="e.g. Midterm Physics" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="quiz-code">Quiz Code <span class="text-muted" style="font-weight:400;">(students use this)</span></label>
+                                <input type="text" id="quiz-code" class="form-control" placeholder="e.g. PHY-201" style="text-transform:uppercase;letter-spacing:0.05em;" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="quiz-time">Time Limit (Minutes)</label>
+                                <input type="number" id="quiz-time" class="form-control" min="1" max="180" placeholder="e.g. 30" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="quiz-description">Description <span class="text-muted" style="font-weight:400;">(optional)</span></label>
+                                <input type="text" id="quiz-description" class="form-control" placeholder="Brief topics covered">
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                            <h3 style="font-size:16px;">Questions</h3>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="addQuestionBlock()">
+                                <i class="fa-solid fa-plus"></i> Add Question
+                            </button>
+                        </div>
+
+                        <div id="questions-builder-container" style="display:flex;flex-direction:column;gap:12px;"></div>
+
+                        <div class="divider"></div>
+
+                        <div style="display:flex;justify-content:flex-end;gap:12px;">
+                            <button type="button" class="btn btn-ghost" onclick="resetQuizForm()">Reset</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Publish Quiz
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- === SECTION: MY QUIZZES === -->
+        <section id="section-quizzes" class="section-panel">
+            <div class="page-header">
+                <h1 class="page-title">My Quizzes</h1>
+                <p class="page-subtitle">All quizzes you have created</p>
+            </div>
+
+            <div class="card">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Quiz Title</th>
+                                <th>Code</th>
+                                <th>Time Limit</th>
+                                <th>Questions</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quizzes-table-body">
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon"><i class="fa-solid fa-folder-open"></i></div>
+                                        <h3>No quizzes yet</h3>
+                                        <p>Create your first quiz to get started.</p>
+                                        <button class="btn btn-primary btn-sm" onclick="switchSection('create')"><i class="fa-solid fa-plus"></i> Create Quiz</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- === SECTION: SCORE REPORTS === -->
+        <section id="section-reports" class="section-panel">
+            <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;">
+                <div>
+                    <h1 class="page-title">Score Reports</h1>
+                    <p class="page-subtitle">All student submissions across your quizzes</p>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <label for="filter-quiz-code" style="font-size:13px;color:var(--text-secondary);white-space:nowrap;">Filter by Quiz:</label>
+                    <select id="filter-quiz-code" class="form-control" style="width:200px;padding:8px 12px;font-size:13px;cursor:pointer;" onchange="filterReports()">
+                        <option value="ALL">All Quizzes</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Email</th>
+                                <th>Quiz Title</th>
+                                <th>Code</th>
+                                <th>Date Taken</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reports-table-body">
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon"><i class="fa-solid fa-chart-bar"></i></div>
+                                        <h3>No submissions yet</h3>
+                                        <p>Results will appear here once students complete your quizzes.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- === SECTION: PROFILE === -->
+        <section id="section-profile" class="section-panel">
+            <div class="page-header">
+                <h1 class="page-title">Edit Profile</h1>
+                <p class="page-subtitle">Update your account information</p>
+            </div>
+
+            <div class="card" style="max-width:560px;">
+                <div class="card-body">
+                    <form id="profile-form" onsubmit="handleProfileUpdate(event)" novalidate>
+                        <div class="form-group">
+                            <label for="profile-username">Username (cannot be changed)</label>
+                            <input type="text" id="profile-username" class="form-control" disabled style="opacity:0.6;cursor:not-allowed;">
+                        </div>
+                        <div class="form-group">
+                            <label for="profile-name">Full Name</label>
+                            <input type="text" id="profile-name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="profile-email">Email Address</label>
+                            <input type="email" id="profile-email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="profile-password">New Password <span class="text-muted" style="font-weight:400;">(leave blank to keep current)</span></label>
+                            <input type="password" id="profile-password" class="form-control" placeholder="Enter new password">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- Toast -->
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+    let loggedInUser = null;
+    let quizzesList = [];
+    let scoreReports = [];
+    let questionCount = 0;
+
+    window.addEventListener('DOMContentLoaded', async () => {
+        await fetchProfile();
+        await fetchQuizzes();
+        await fetchReports();
+        addQuestionBlock();
+    });
+
+    async function fetchProfile() {
+        try {
+            const res = await fetch('/api/auth/profile');
+            if (res.ok) {
+                loggedInUser = await res.json();
+                const initials = loggedInUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('nav-avatar').innerText = initials;
+                document.getElementById('nav-user-name').innerText = loggedInUser.name;
+                document.getElementById('sidebar-name').innerText = loggedInUser.name;
+                document.getElementById('profile-username').value = loggedInUser.username;
+                document.getElementById('profile-name').value = loggedInUser.name;
+                document.getElementById('profile-email').value = loggedInUser.email;
+            } else {
+                window.location.href = '/index.html';
+            }
+        } catch (_) { window.location.href = '/index.html'; }
+    }
+
+    async function fetchQuizzes() {
+        try {
+            const res = await fetch('/api/teacher/quizzes');
+            if (res.ok) {
+                quizzesList = await res.json();
+                renderQuizzesTable();
+                populateFilterDropdown();
+                document.getElementById('widget-created').innerText = quizzesList.length;
+            }
+        } catch (_) {}
+    }
+
+    function renderQuizzesTable() {
+        const tbody = document.getElementById('quizzes-table-body');
+        if (!quizzesList.length) {
+            tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-folder-open"></i></div><h3>No quizzes yet</h3><p>Create your first quiz to get started.</p><button class="btn btn-primary btn-sm" onclick="switchSection('create')"><i class="fa-solid fa-plus"></i> Create Quiz</button></div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = quizzesList.map(q => `
+            <tr>
+                <td><strong style="color:var(--text-primary);">${escapeHtml(q.title)}</strong>${q.description ? `<p style="font-size:12px;color:var(--text-muted);margin-top:2px;">${escapeHtml(q.description)}</p>` : ''}</td>
+                <td><code style="background:var(--bg-elevated);padding:2px 8px;border-radius:4px;font-size:12px;letter-spacing:0.05em;">${escapeHtml(q.quizCode)}</code></td>
+                <td>${q.timeLimit} mins</td>
+                <td><span class="badge badge-primary">${q.questions.length} Q</span></td>
+                <td style="font-size:13px;">${new Date(q.createdDate).toLocaleDateString()}</td>
+            </tr>`).join('');
+    }
+
+    function populateFilterDropdown() {
+        const select = document.getElementById('filter-quiz-code');
+        select.innerHTML = '<option value="ALL">All Quizzes</option>';
+        quizzesList.forEach(q => {
+            const opt = document.createElement('option');
+            opt.value = q.quizCode;
+            opt.innerText = `${q.title} (${q.quizCode})`;
+            select.appendChild(opt);
+        });
+    }
+
+    async function fetchReports() {
+        try {
+            const res = await fetch('/api/teacher/attempts');
+            if (res.ok) {
+                scoreReports = await res.json();
+                renderReportsTable(scoreReports);
+                calculateClassStats();
+            }
+        } catch (_) {}
+    }
+
+    function renderReportsTable(data) {
+        const tbody = document.getElementById('reports-table-body');
+        if (!data.length) {
+            tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-chart-bar"></i></div><h3>No submissions yet</h3><p>Results will appear here once students complete your quizzes.</p></div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = data.map(r => {
+            const pct = r.percentage;
+            const cls = pct >= 75 ? 'score-high' : pct >= 50 ? 'score-mid' : 'score-low';
+            return `
+            <tr>
+                <td><strong style="color:var(--text-primary);">${escapeHtml(r.studentName)}</strong></td>
+                <td style="font-size:13px;color:var(--text-secondary);">${escapeHtml(r.studentEmail)}</td>
+                <td>${escapeHtml(r.quizTitle)}</td>
+                <td><code style="background:var(--bg-elevated);padding:2px 8px;border-radius:4px;font-size:12px;">${escapeHtml(r.quizCode)}</code></td>
+                <td style="font-size:13px;">${new Date(r.dateTaken).toLocaleString()}</td>
+                <td>${r.score} / ${r.totalQuestions}</td>
+                <td><span class="score-pill ${cls}">${pct.toFixed(1)}%</span></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function filterReports() {
+        const val = document.getElementById('filter-quiz-code').value;
+        renderReportsTable(val === 'ALL' ? scoreReports : scoreReports.filter(r => r.quizCode === val));
+    }
+
+    function calculateClassStats() {
+        document.getElementById('widget-submissions').innerText = scoreReports.length;
+        if (!scoreReports.length) return;
+        const avg = (scoreReports.reduce((s, r) => s + r.percentage, 0) / scoreReports.length).toFixed(1);
+        document.getElementById('widget-class-avg').innerText = avg + '%';
+    }
+
+    // ===== QUIZ BUILDER =====
+    function addQuestionBlock() {
+        questionCount++;
+        const container = document.getElementById('questions-builder-container');
+        const card = document.createElement('div');
+        card.className = 'question-block';
+        card.id = `q-card-${questionCount}`;
+        card.innerHTML = `
+            <div class="question-block-header">
+                <span class="question-number">Question #${questionCount}</span>
+                <button type="button" class="btn btn-danger btn-sm btn-icon" onclick="removeQuestionBlock(${questionCount})" title="Remove question">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+                <label>Question Text</label>
+                <textarea class="form-control q-text" rows="2" placeholder="e.g. What is the chemical symbol for gold?" required></textarea>
+            </div>
+            <div class="options-grid">
+                <div class="option-item">
+                    <div class="option-prefix">A</div>
+                    <input type="text" class="form-control q-optA" placeholder="Option A" required>
+                </div>
+                <div class="option-item">
+                    <div class="option-prefix">B</div>
+                    <input type="text" class="form-control q-optB" placeholder="Option B" required>
+                </div>
+                <div class="option-item">
+                    <div class="option-prefix">C</div>
+                    <input type="text" class="form-control q-optC" placeholder="Option C" required>
+                </div>
+                <div class="option-item">
+                    <div class="option-prefix">D</div>
+                    <input type="text" class="form-control q-optD" placeholder="Option D" required>
+                </div>
+            </div>
+            <div class="correct-answer-select">
+                <label>Correct Answer:</label>
+                <button type="button" class="answer-option-btn selected" data-ans="A" onclick="selectAnswer(this, ${questionCount})">A</button>
+                <button type="button" class="answer-option-btn" data-ans="B" onclick="selectAnswer(this, ${questionCount})">B</button>
+                <button type="button" class="answer-option-btn" data-ans="C" onclick="selectAnswer(this, ${questionCount})">C</button>
+                <button type="button" class="answer-option-btn" data-ans="D" onclick="selectAnswer(this, ${questionCount})">D</button>
+                <input type="hidden" class="q-correct" value="A">
+            </div>`;
+        container.appendChild(card);
+    }
+
+    function selectAnswer(btn, qId) {
+        const card = document.getElementById(`q-card-${qId}`);
+        card.querySelectorAll('.answer-option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        card.querySelector('.q-correct').value = btn.dataset.ans;
+    }
+
+    function removeQuestionBlock(id) {
+        const card = document.getElementById(`q-card-${id}`);
+        if (card) { card.remove(); reindexQuestions(); }
+    }
+
+    function reindexQuestions() {
+        document.querySelectorAll('.question-block').forEach((c, i) => {
+            c.querySelector('.question-number').innerText = `Question #${i + 1}`;
+        });
+    }
+
+    async function handleQuizSubmit(e) {
+        e.preventDefault();
+        const title = document.getElementById('quiz-title').value.trim();
+        const quizCode = document.getElementById('quiz-code').value.trim().toUpperCase();
+        const timeLimit = parseInt(document.getElementById('quiz-time').value);
+        const description = document.getElementById('quiz-description').value.trim();
+
+        const cards = document.querySelectorAll('.question-block');
+        if (!cards.length) { showToast('Add at least one question.', 'error'); return; }
+
+        const questions = [];
+        let valid = true;
+        cards.forEach(card => {
+            const qt = card.querySelector('.q-text').value.trim();
+            const a = card.querySelector('.q-optA').value.trim();
+            const b = card.querySelector('.q-optB').value.trim();
+            const c = card.querySelector('.q-optC').value.trim();
+            const d = card.querySelector('.q-optD').value.trim();
+            const correct = card.querySelector('.q-correct').value;
+            if (!qt || !a || !b || !c || !d) valid = false;
+            questions.push({ questionText: qt, optionA: a, optionB: b, optionC: c, optionD: d, correctOption: correct });
+        });
+        if (!valid) { showToast('Please fill all question fields.', 'error'); return; }
+
+        try {
+            const res = await fetch('/api/teacher/quizzes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, quizCode, timeLimit, description, questions })
+            });
+            if (res.ok) {
+                showToast('Quiz published successfully!', 'success');
+                resetQuizForm();
+                await fetchQuizzes();
+                switchSection('quizzes');
+            } else {
+                const err = await res.json().catch(() => ({}));
+                showToast(err.message || 'Failed to publish quiz.', 'error');
+            }
+        } catch (_) {
+            showToast('Server error.', 'error');
+        }
+    }
+
+    function resetQuizForm() {
+        document.getElementById('quiz-create-form').reset();
+        document.getElementById('questions-builder-container').innerHTML = '';
+        questionCount = 0;
+        addQuestionBlock();
+    }
+
+    async function handleProfileUpdate(e) {
+        e.preventDefault();
+        const payload = {
+            name: document.getElementById('profile-name').value,
+            email: document.getElementById('profile-email').value
+        };
+        const pw = document.getElementById('profile-password').value;
+        if (pw.trim()) payload.password = pw;
+        try {
+            const res = await fetch('/api/auth/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                showToast('Profile updated!', 'success');
+                document.getElementById('profile-password').value = '';
+                await fetchProfile();
+            } else {
+                const err = await res.json().catch(() => ({}));
+                showToast(err.message || 'Failed to update.', 'error');
+            }
+        } catch (_) { showToast('Server error.', 'error'); }
+    }
+
+    function switchSection(id) {
+        document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('menu-' + id).classList.add('active');
+        document.querySelectorAll('.section-panel').forEach(s => s.classList.remove('active'));
+        document.getElementById('section-' + id).classList.add('active');
+        if (window.innerWidth <= 768) document.getElementById('main-sidebar').classList.remove('mobile-open');
+    }
+
+    function toggleMobileSidebar() {
+        document.getElementById('main-sidebar').classList.toggle('mobile-open');
+    }
+
+    async function handleLogout() {
+        try { await fetch('/api/auth/logout', { method: 'POST' }); } catch (_) {}
+        window.location.href = '/index.html';
+    }
+
+    function showToast(message, type = 'success') {
+        const c = document.getElementById('toast-container');
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        const icons = { success: 'fa-circle-check', error: 'fa-circle-exclamation', info: 'fa-circle-info' };
+        t.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${message}</span>`;
+        c.appendChild(t);
+        setTimeout(() => { t.style.transition='all 0.3s'; t.style.opacity='0'; t.style.transform='translateY(12px)'; setTimeout(() => t.remove(), 320); }, 3200);
+    }
+
+    function escapeHtml(t) {
+        if (!t) return '';
+        return t.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    }
+</script>
+</body>
+</html>

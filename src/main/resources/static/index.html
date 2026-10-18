@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="QuizSphere — A modern knowledge testing platform for students and teachers.">
+    <title>QuizSphere — Knowledge Testing Platform</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div class="auth-page">
+
+    <!-- ===== LEFT BRANDING PANEL ===== -->
+    <div class="auth-branding">
+        <div class="branding-logo">
+            <div class="branding-logo-icon">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <span class="branding-logo-text">QuizSphere</span>
+        </div>
+
+        <div class="branding-content">
+            <h1 class="branding-title">
+                Learn Smarter,<br>
+                <span class="gradient-text">Test Better.</span>
+            </h1>
+            <p class="branding-desc">
+                A next-generation quiz platform built for modern educators and curious learners. Create, share, and analyze quizzes in seconds.
+            </p>
+            <div class="branding-features">
+                <div class="branding-feature">
+                    <div class="branding-feature-icon" style="background: rgba(99,102,241,0.1); color: var(--primary-light);">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <span>Instant quiz creation with shareable codes</span>
+                </div>
+                <div class="branding-feature">
+                    <div class="branding-feature-icon" style="background: rgba(34,211,238,0.1); color: var(--cyan);">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <span>Real-time analytics and score tracking</span>
+                </div>
+                <div class="branding-feature">
+                    <div class="branding-feature-icon" style="background: rgba(16,185,129,0.1); color: var(--emerald);">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span>Secure, role-based access for teachers & students</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="branding-footer">
+            &copy; 2024 QuizSphere. All rights reserved.
+        </div>
+    </div>
+
+    <!-- ===== RIGHT FORM PANEL ===== -->
+    <div class="auth-form-panel">
+        <div class="auth-form-wrap">
+
+            <!-- Tabs -->
+            <div class="auth-tabs" role="tablist">
+                <button id="tab-login" class="auth-tab active" onclick="switchTab('login')" role="tab" aria-selected="true">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                </button>
+                <button id="tab-register" class="auth-tab" onclick="switchTab('register')" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-user-plus"></i> Register
+                </button>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <div id="login-form-container">
+                <div class="auth-header">
+                    <h2>Welcome back</h2>
+                    <p>Sign in to access your quizzes and reports</p>
+                </div>
+
+                <form id="login-form" onsubmit="handleLogin(event)" novalidate>
+                    <div class="form-group">
+                        <label for="login-username">Username</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-user input-icon"></i>
+                            <input type="text" id="login-username" class="form-control has-icon" placeholder="Enter your username" required autocomplete="username">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-lock input-icon"></i>
+                            <input type="password" id="login-password" class="form-control has-icon has-right-icon" placeholder="Enter your password" required autocomplete="current-password">
+                            <button type="button" class="password-toggle" id="toggle-login-pass" onclick="togglePasswordVisibility('login-password', 'toggle-login-pass')" aria-label="Toggle password">
+                                <i class="fa-solid fa-eye-slash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="login-remember">
+                            <span>Remember me</span>
+                        </label>
+                        <a href="javascript:void(0)" style="font-size:13px; font-weight:600;">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" id="login-submit-btn" class="btn btn-primary btn-full btn-lg" style="margin-top:4px;">
+                        Sign In <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    Don't have an account?
+                    <a href="javascript:void(0)" onclick="switchTab('register')" style="font-weight:700; margin-left:4px;">Create one &rarr;</a>
+                </div>
+            </div>
+
+            <!-- REGISTER FORM -->
+            <div id="register-form-container" style="display:none;">
+                <div class="auth-header">
+                    <h2>Create account</h2>
+                    <p>Join QuizSphere as a student or teacher</p>
+                </div>
+
+                <form id="register-form" onsubmit="handleRegister(event)" novalidate>
+                    <div class="form-group">
+                        <label for="reg-name">Full Name</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-signature input-icon"></i>
+                            <input type="text" id="reg-name" class="form-control has-icon" placeholder="John Doe" required autocomplete="name">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-envelope input-icon"></i>
+                            <input type="email" id="reg-email" class="form-control has-icon" placeholder="john@example.com" required autocomplete="email">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-username">Username</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-at input-icon"></i>
+                            <input type="text" id="reg-username" class="form-control has-icon" placeholder="johndoe" required autocomplete="username">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>I am a...</label>
+                        <input type="hidden" id="reg-role" value="STUDENT">
+                        <div class="role-selector-group">
+                            <div class="role-card active" id="role-card-student" onclick="selectRoleCard('STUDENT')" role="button" tabindex="0">
+                                <i class="fa-solid fa-user-graduate"></i>
+                                <span>Student</span>
+                            </div>
+                            <div class="role-card" id="role-card-teacher" onclick="selectRoleCard('TEACHER')" role="button" tabindex="0">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                                <span>Teacher</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-lock input-icon"></i>
+                            <input type="password" id="reg-password" class="form-control has-icon has-right-icon" placeholder="Choose a strong password" required autocomplete="new-password">
+                            <button type="button" class="password-toggle" id="toggle-reg-pass" onclick="togglePasswordVisibility('reg-password', 'toggle-reg-pass')" aria-label="Toggle password">
+                                <i class="fa-solid fa-eye-slash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-row" style="justify-content:flex-start; margin-bottom:18px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="reg-terms" required>
+                            <span>I agree to the <a href="javascript:void(0)">Terms &amp; Conditions</a></span>
+                        </label>
+                    </div>
+
+                    <button type="submit" id="register-submit-btn" class="btn btn-primary btn-full btn-lg">
+                        Create Account <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    Already have an account?
+                    <a href="javascript:void(0)" onclick="switchTab('login')" style="font-weight:700; margin-left:4px;">Sign in &rarr;</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+    // Check if already logged in
+    window.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res = await fetch('/api/auth/profile');
+            if (res.ok) {
+                const user = await res.json();
+                redirectUser(user.role);
+            }
+        } catch (_) {}
+    });
+
+    let currentTab = 'login';
+
+    function switchTab(mode) {
+        currentTab = mode;
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const loginContainer = document.getElementById('login-form-container');
+        const registerContainer = document.getElementById('register-form-container');
+
+        if (mode === 'login') {
+            tabLogin.classList.add('active');   tabLogin.setAttribute('aria-selected','true');
+            tabRegister.classList.remove('active'); tabRegister.setAttribute('aria-selected','false');
+            loginContainer.style.display = 'block';
+            registerContainer.style.display = 'none';
+        } else {
+            tabRegister.classList.add('active'); tabRegister.setAttribute('aria-selected','true');
+            tabLogin.classList.remove('active'); tabLogin.setAttribute('aria-selected','false');
+            loginContainer.style.display = 'none';
+            registerContainer.style.display = 'block';
+        }
+    }
+
+    function togglePasswordVisibility(inputId, toggleId) {
+        const input = document.getElementById(inputId);
+        const btn = document.getElementById(toggleId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fa-solid fa-eye';
+        } else {
+            input.type = 'password';
+            icon.className = 'fa-solid fa-eye-slash';
+        }
+    }
+
+    function selectRoleCard(role) {
+        document.getElementById('reg-role').value = role;
+        document.getElementById('role-card-student').classList.toggle('active', role === 'STUDENT');
+        document.getElementById('role-card-teacher').classList.toggle('active', role === 'TEACHER');
+    }
+
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const icons = { success: 'fa-circle-check', error: 'fa-circle-exclamation', info: 'fa-circle-info' };
+        toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.transition = 'all 0.3s ease';
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(12px)';
+            setTimeout(() => toast.remove(), 320);
+        }, 3200);
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        const btn = document.getElementById('login-submit-btn');
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in...';
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            if (res.ok) {
+                const user = await res.json();
+                showToast('Logged in successfully! Redirecting...', 'success');
+                setTimeout(() => redirectUser(user.role), 1000);
+            } else {
+                const err = await res.json().catch(() => ({}));
+                showToast(err.message || 'Login failed. Check your credentials.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = 'Sign In <i class="fa-solid fa-arrow-right"></i>';
+            }
+        } catch (_) {
+            showToast('Server error. Please try again later.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = 'Sign In <i class="fa-solid fa-arrow-right"></i>';
+        }
+    }
+
+    async function handleRegister(e) {
+        e.preventDefault();
+        const btn = document.getElementById('register-submit-btn');
+        const name = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const username = document.getElementById('reg-username').value.trim();
+        const role = document.getElementById('reg-role').value;
+        const password = document.getElementById('reg-password').value;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating...';
+        try {
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, username, role, password })
+            });
+            if (res.ok) {
+                showToast('Account created! You can now sign in.', 'success');
+                document.getElementById('register-form').reset();
+                selectRoleCard('STUDENT');
+                setTimeout(() => switchTab('login'), 1200);
+            } else {
+                const err = await res.json().catch(() => ({}));
+                showToast(err.message || 'Registration failed.', 'error');
+            }
+        } catch (_) {
+            showToast('Server error. Please try again later.', 'error');
+        }
+        btn.disabled = false;
+        btn.innerHTML = 'Create Account <i class="fa-solid fa-arrow-right"></i>';
+    }
+
+    function redirectUser(role) {
+        if (role === 'TEACHER') window.location.href = '/teacher-dashboard.html';
+        else if (role === 'STUDENT') window.location.href = '/student-dashboard.html';
+    }
+</script>
+</body>
+</html>

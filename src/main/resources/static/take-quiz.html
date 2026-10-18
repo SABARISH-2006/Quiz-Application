@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Take a quiz on QuizSphere.">
+    <title>Take Quiz — QuizSphere</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<!-- ===== TOPBAR ===== -->
+<div class="quiz-topbar" id="quiz-topbar">
+    <div class="logo" style="flex-shrink:0;">
+        <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+    </div>
+    <div class="quiz-info">
+        <h2 id="quiz-title-bar">Loading quiz...</h2>
+        <p id="quiz-desc-bar" style="font-size:12px;color:var(--text-secondary);">Please wait</p>
+    </div>
+    <div class="quiz-timer" id="timer-display">
+        <i class="fa-regular fa-clock" style="font-size:16px;"></i>
+        <span id="time-left">00:00</span>
+    </div>
+</div>
+
+<!-- Progress bar strip -->
+<div class="quiz-progress-bar">
+    <div class="quiz-progress-fill" id="progress-fill" style="width:0%;"></div>
+</div>
+
+<!-- ===== QUIZ BODY ===== -->
+<div class="quiz-body">
+    <!-- Question nav sidebar -->
+    <div class="quiz-sidebar" id="quiz-sidebar">
+        <div class="quiz-sidebar-title">Questions</div>
+        <div class="q-nav-grid" id="q-nav-grid"></div>
+    </div>
+
+    <!-- Active question -->
+    <div class="quiz-main" id="quiz-main">
+        <div class="question-card" id="question-card">
+            <div class="question-header">
+                <span class="question-count-badge" id="q-badge">Q1</span>
+                <span style="font-size:13px;color:var(--text-secondary);" id="q-count-label">of 0</span>
+            </div>
+            <div class="question-text" id="question-prompt">Loading...</div>
+            <div class="options-list" id="options-container"></div>
+            <div class="quiz-footer">
+                <button class="btn btn-secondary" id="btn-prev" onclick="navigateQuestion(-1)" disabled>
+                    <i class="fa-solid fa-arrow-left"></i> Previous
+                </button>
+                <button class="btn btn-primary" id="btn-next" onclick="navigateQuestion(1)">
+                    Next <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== REVIEW SECTION ===== -->
+<div id="review-section" style="display:none;padding:32px;max-width:760px;margin:80px auto 60px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <h2 style="font-size:22px;">Answer Review</h2>
+        <button class="btn btn-primary btn-sm" onclick="goHome()">
+            <i class="fa-solid fa-house"></i> Dashboard
+        </button>
+    </div>
+    <div id="review-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+</div>
+
+<!-- ===== SCORE MODAL ===== -->
+<div id="score-modal" class="modal-overlay" style="pointer-events:none;opacity:0;">
+    <div class="modal" style="max-width:460px;text-align:center;">
+        <div class="modal-body" style="padding:36px 32px;">
+            <div id="score-icon" style="font-size:48px;margin-bottom:16px;"></div>
+            <h2 id="modal-heading" style="font-size:24px;margin-bottom:8px;">Quiz Complete!</h2>
+            <p class="text-secondary" style="font-size:14px;margin-bottom:24px;">You have completed the quiz successfully.</p>
+
+            <div class="score-display">
+                <div id="score-circle-wrap" style="margin-bottom:20px;">
+                    <div style="font-size:48px;font-weight:800;font-family:var(--font-heading);" id="display-percentage">0%</div>
+                    <div style="font-size:14px;color:var(--text-secondary);margin-top:4px;" id="display-score-label">0 / 0 correct</div>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:10px;justify-content:center;">
+                <button class="btn btn-secondary" onclick="goHome()"><i class="fa-solid fa-house"></i> Dashboard</button>
+                <button class="btn btn-primary" onclick="startReviewMode()"><i class="fa-solid fa-eye"></i> Review Answers</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+    let quizCode = '';
+    let quizData = null;
+    let currentIdx = 0;
+    let userAnswers = {};
+    let timerInterval = null;
+    let totalSeconds = 0;
+    let isSubmitted = false;
+
+    window.addEventListener('DOMContentLoaded', async () => {
+        const params = new URLSearchParams(window.location.search);
+        quizCode = params.get('code');
+        if (!quizCode) { showToast('Invalid quiz code.', 'error'); setTimeout(goHome, 2000); return; }
+        await loadQuiz();
+    });
+
+    async function loadQuiz() {
+        try {
+            const res = await fetch(`/api/student/quizzes/code/${encodeURIComponent(quizCode)}`);
+            if (!res.ok) throw new Error();
+            quizData = await res.json();
+            if (!quizData.questions.length) { showToast('This quiz has no questions.', 'error'); setTimeout(goHome, 2000); return; }
+
+            document.getElementById('quiz-title-bar').innerText = quizData.title;
+            document.getElementById('quiz-desc-bar').innerText = quizData.description || '';
+            document.title = `${quizData.title} — QuizSphere`;
+
+            totalSeconds = quizData.timeLimit * 60;
+            buildNavGrid();
+            renderQuestion();
+            startTimer();
+        } catch (_) {
+            showToast('Failed to load quiz.', 'error');
+            setTimeout(goHome, 2000);
+        }
+    }
+
+    function buildNavGrid() {
+        const grid = document.getElementById('q-nav-grid');
+        grid.innerHTML = quizData.questions.map((_, i) =>
+            `<button class="q-nav-btn${i === 0 ? ' current' : ''}" id="qnav-${i}" onclick="goToQuestion(${i})">${i+1}</button>`
+        ).join('');
+    }
+
+    function updateNavGrid() {
+        quizData.questions.forEach((q, i) => {
+            const btn = document.getElementById(`qnav-${i}`);
+            if (!btn) return;
+            btn.className = 'q-nav-btn';
+            if (userAnswers[q.id]) btn.classList.add('answered');
+            if (i === currentIdx) btn.classList.add('current');
+        });
+    }
+
+    function startTimer() {
+        updateTimerDisplay();
+        timerInterval = setInterval(() => {
+            totalSeconds--;
+            updateTimerDisplay();
+            if (totalSeconds <= 0) {
+                clearInterval(timerInterval);
+                showToast("Time's up! Auto-submitting...", 'error');
+                submitQuiz(true);
+            }
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const m = Math.floor(totalSeconds / 60);
+        const s = totalSeconds % 60;
+        document.getElementById('time-left').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        const el = document.getElementById('timer-display');
+        el.classList.remove('warning', 'danger');
+        if (totalSeconds <= 60) el.classList.add('danger');
+        else if (totalSeconds <= 180) el.classList.add('warning');
+    }
+
+    function renderQuestion() {
+        const q = quizData.questions[currentIdx];
+        const total = quizData.questions.length;
+        const saved = userAnswers[q.id];
+
+        document.getElementById('q-badge').innerText = `Q${currentIdx + 1}`;
+        document.getElementById('q-count-label').innerText = `of ${total}`;
+        document.getElementById('question-prompt').innerText = q.questionText;
+
+        const pct = ((currentIdx + 1) / total * 100).toFixed(1);
+        document.getElementById('progress-fill').style.width = pct + '%';
+
+        const opts = [
+            { letter: 'A', text: q.optionA },
+            { letter: 'B', text: q.optionB },
+            { letter: 'C', text: q.optionC },
+            { letter: 'D', text: q.optionD },
+        ];
+
+        document.getElementById('options-container').innerHTML = opts.map(o => `
+            <label class="option-label${saved === o.letter ? ' selected' : ''}">
+                <input type="radio" name="q-option" value="${o.letter}" ${saved === o.letter ? 'checked' : ''} onchange="selectOption('${o.letter}')">
+                <div class="option-bubble">${o.letter}</div>
+                <span class="option-text">${escapeHtml(o.text)}</span>
+            </label>`).join('');
+
+        document.getElementById('btn-prev').disabled = currentIdx === 0;
+
+        const btnNext = document.getElementById('btn-next');
+        if (currentIdx === total - 1) {
+            btnNext.innerHTML = '<i class="fa-solid fa-check-circle"></i> Submit Quiz';
+            btnNext.className = 'btn btn-success';
+            btnNext.onclick = () => submitQuiz(false);
+        } else {
+            btnNext.innerHTML = 'Next <i class="fa-solid fa-arrow-right"></i>';
+            btnNext.className = 'btn btn-primary';
+            btnNext.onclick = () => navigateQuestion(1);
+        }
+
+        updateNavGrid();
+    }
+
+    function selectOption(letter) {
+        const q = quizData.questions[currentIdx];
+        userAnswers[q.id] = letter;
+        renderQuestion();
+    }
+
+    function navigateQuestion(dir) {
+        currentIdx = Math.max(0, Math.min(quizData.questions.length - 1, currentIdx + dir));
+        renderQuestion();
+    }
+
+    function goToQuestion(idx) {
+        currentIdx = idx;
+        renderQuestion();
+    }
+
+    async function submitQuiz(force = false) {
+        if (isSubmitted) return;
+        if (!force) {
+            const total = quizData.questions.length;
+            const answered = Object.keys(userAnswers).length;
+            const msg = answered < total
+                ? `You've answered ${answered} of ${total} questions. Submit anyway?`
+                : 'Submit your quiz and see your score?';
+            if (!confirm(msg)) return;
+        }
+
+        isSubmitted = true;
+        clearInterval(timerInterval);
+
+        try {
+            const res = await fetch('/api/student/quizzes/take', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quizCode: quizData.quizCode, answers: userAnswers })
+            });
+            if (!res.ok) throw new Error();
+            const result = await res.json();
+
+            const pct = result.percentage;
+            document.getElementById('display-percentage').innerText = pct.toFixed(1) + '%';
+            document.getElementById('display-percentage').style.color = pct >= 75 ? 'var(--emerald)' : pct >= 50 ? 'var(--amber)' : 'var(--rose)';
+            document.getElementById('display-score-label').innerText = `${result.score} / ${result.totalQuestions} correct`;
+
+            const icon = document.getElementById('score-icon');
+            if (pct >= 75) { icon.innerHTML = '<i class="fa-solid fa-trophy" style="color:var(--amber);"></i>'; document.getElementById('modal-heading').innerText = 'Excellent Work!'; }
+            else if (pct >= 50) { icon.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--emerald);"></i>'; document.getElementById('modal-heading').innerText = 'Good Job!'; }
+            else { icon.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:var(--rose);"></i>'; document.getElementById('modal-heading').innerText = 'Keep Practicing!'; }
+
+            window.quizReviewData = result.review;
+
+            const modal = document.getElementById('score-modal');
+            modal.style.pointerEvents = 'all';
+            modal.style.opacity = '1';
+            modal.classList.add('open');
+        } catch (_) {
+            showToast('Error submitting quiz.', 'error');
+            isSubmitted = false;
+        }
+    }
+
+    function startReviewMode() {
+        document.getElementById('score-modal').classList.remove('open');
+        document.getElementById('score-modal').style.opacity = '0';
+        document.getElementById('score-modal').style.pointerEvents = 'none';
+        document.querySelector('.quiz-body').style.display = 'none';
+        document.getElementById('quiz-topbar').style.display = 'none';
+
+        const reviews = window.quizReviewData || [];
+        document.getElementById('review-list').innerHTML = reviews.map((q, idx) => {
+            const isCorrect = q.submittedOption === q.correctOption;
+            const opts = ['A','B','C','D'].map(o => {
+                let s = 'background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-secondary);';
+                if (q.correctOption === o) s = 'background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:var(--emerald);';
+                else if (q.submittedOption === o) s = 'background:rgba(244,63,94,0.1);border:1px solid rgba(244,63,94,0.3);color:var(--rose);';
+                return `<div style="padding:8px 12px;border-radius:var(--radius-xs);font-size:13px;${s}"><strong>${o}.</strong> ${escapeHtml(q[`option${o}`] || '')}</div>`;
+            }).join('');
+            return `
+            <div style="border:1px solid ${isCorrect ? 'rgba(16,185,129,0.3)' : 'rgba(244,63,94,0.3)'};border-radius:var(--radius-md);overflow:hidden;">
+                <div style="padding:12px 16px;background:${isCorrect ? 'rgba(16,185,129,0.05)' : 'rgba(244,63,94,0.05)'};border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:var(--radius-full);background:var(--bg-elevated);color:var(--text-muted);">Q${idx+1}</span>
+                    <span style="font-size:14px;font-weight:600;flex:1;">${escapeHtml(q.questionText)}</span>
+                    <i class="fa-solid ${isCorrect ? 'fa-circle-check' : 'fa-circle-xmark'}" style="color:${isCorrect ? 'var(--emerald)' : 'var(--rose)'};"></i>
+                </div>
+                <div style="padding:10px;display:flex;flex-direction:column;gap:6px;">${opts}</div>
+                <div style="padding:8px 16px;border-top:1px solid var(--border);font-size:12px;color:var(--text-muted);display:flex;gap:20px;">
+                    <span>Correct: <strong style="color:var(--emerald);">${q.correctOption}</strong></span>
+                    <span>Your answer: <strong style="color:${isCorrect ? 'var(--emerald)' : 'var(--rose)'};">${q.submittedOption || 'None'}</strong></span>
+                </div>
+            </div>`;
+        }).join('');
+
+        document.getElementById('review-section').style.display = 'block';
+        window.scrollTo(0, 0);
+    }
+
+    function goHome() { window.location.href = '/student-dashboard.html'; }
+
+    function showToast(message, type = 'success') {
+        const c = document.getElementById('toast-container');
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        const icons = { success: 'fa-circle-check', error: 'fa-circle-exclamation', info: 'fa-circle-info' };
+        t.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${message}</span>`;
+        c.appendChild(t);
+        setTimeout(() => { t.style.transition='all 0.3s'; t.style.opacity='0'; t.style.transform='translateY(12px)'; setTimeout(() => t.remove(), 320); }, 3200);
+    }
+
+    function escapeHtml(t) {
+        if (!t) return '';
+        return t.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    }
+</script>
+</body>
+</html>
